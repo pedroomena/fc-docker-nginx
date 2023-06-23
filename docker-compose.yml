@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  express:
+    build: .
+    container_name: express
+    volumes: 
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    tty: true
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  nginx:
+    image: nginx:1.25
+    container_name: nginx
+    restart: always
+    volumes:
+      - ./default.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - "8080:80"
+    depends_on:
+      - express
+
+  mysql:
+    image: mysql:8
+    container_name: mysql
+    restart: always
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/a.sql
+      - ./dbdata:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=fullcycle
+      - MYSQL_INITDB_SKIP_TZINFO=0
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
+      interval: 5s
+      retries: 4

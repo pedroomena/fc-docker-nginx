@@ -1,0 +1,5 @@
+node_modules
+dbdata
+npm-debug.log
+docker-compose.yml
+Dockerfile
